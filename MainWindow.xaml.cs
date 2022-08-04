@@ -103,6 +103,7 @@ namespace PublicTransportInformationService
             CancellationTokenSource ts = new CancellationTokenSource();
 
             bool isCanceled = false;
+            chkBox.IsChecked = false;
 
             var fastestRouteAlgoTask = Task.Run(() =>
             {
@@ -133,6 +134,7 @@ namespace PublicTransportInformationService
             ts.Dispose();
             cancellationTokenSource = null;
 
+            string completionText = "Calculation finished.";
             if (!isCanceled)
             {
                 GenerateOutputRouteAlgo(fastestRouteAlgo, "Fastest route takes: ", "minutes",fastestPathOutput);
@@ -140,16 +142,11 @@ namespace PublicTransportInformationService
             }
             else
             {
-                infoOutput.Text = "Canceled.";
-                return;
+                completionText = "Canceled.";
             }
 
-            infoOutput.Text = "Calculation finished.";
-        }
-
-        private void GenerateOutputForCheapestRoute()
-        {
-
+            infoOutput.Text = completionText;
+            chkBox.IsChecked = true;
         }
 
         private void GenerateOutputRouteAlgo(RoutePathAlgorithmBase algo, string description, string mesureName, TextBlock outputContainer)

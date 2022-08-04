@@ -10,16 +10,16 @@ namespace PublicTransportInformationService.Tools.Parser
     {
         #region Private members
 
-        private const string s_integerValuePattern = "(?:(?:\\d+)\\s?)";
-        private const string s_routesOrderedSequenceGroupName = "routesOrderedSequence";
-        private const string s_routesDurationGroupName = "routePartsDuration";
+        private const string integerValuePattern = "(?:(?:\\d+)\\s?)";
+        private const string routesOrderedSequenceGroupName = "routesOrderedSequence";
+        private const string routesDurationGroupName = "routePartsDuration";
 
         private int i_routesCount;
 
-        private readonly Regex m_routeStopsCountRegex = new Regex(@"^\d+");
+        private readonly Regex routeStopsCountRegex = new Regex(@"^\d+");
 
-        private Queue<string> m_infoLinesQueue;
-        private Queue<Action<string>> m_parsingPipeline = new Queue<Action<string>>();
+        private Queue<string> infoLinesQueue;
+        private Queue<Action<string>> parsingPipeline = new Queue<Action<string>>();
 
         #endregion
 
@@ -43,14 +43,14 @@ namespace PublicTransportInformationService.Tools.Parser
 
                 Action<string> currentLineParseHandler = null;
 
-                while (m_infoLinesQueue.Count > 0)
+                while (infoLinesQueue.Count > 0)
                 {
-                    if (m_parsingPipeline.Count > 0)
+                    if (parsingPipeline.Count > 0)
                     {
-                        currentLineParseHandler = m_parsingPipeline.Dequeue();
+                        currentLineParseHandler = parsingPipeline.Dequeue();
                     }
 
-                    currentLineParseHandler?.Invoke(m_infoLinesQueue.Dequeue());
+                    currentLineParseHandler?.Invoke(infoLinesQueue.Dequeue());
                 }
 
                 ParsedSuccessfulEvent?.Invoke();
@@ -77,17 +77,17 @@ namespace PublicTransportInformationService.Tools.Parser
                     Split('\n').
                     Select(l => l.Trim('\r'));
 
-            m_infoLinesQueue = new Queue<string>(
+            infoLinesQueue = new Queue<string>(
                 dataRows.Where(r => r != dataRows.ElementAt(1))                    //Filter stop points count for a while
                 );
         }
 
         private void InitParsingPipeline()
         {
-            m_parsingPipeline.Enqueue(ParseRoutesCountLine);
-            m_parsingPipeline.Enqueue(ParseRoutesStartTime);
-            m_parsingPipeline.Enqueue(ParseRouteCost);
-            m_parsingPipeline.Enqueue(ParseRouteInfoLines);
+            parsingPipeline.Enqueue(ParseRoutesCountLine);
+            parsingPipeline.Enqueue(ParseRoutesStartTime);
+            parsingPipeline.Enqueue(ParseRouteCost);
+            parsingPipeline.Enqueue(ParseRouteInfoLines);
         }
 
         private void ParseRoutesCountLine(string routesCountRow)
@@ -107,23 +107,23 @@ namespace PublicTransportInformationService.Tools.Parser
 
         private void ParseRouteInfoLines(string routeInfoLine)
         {
-            int routeStopsCount = int.Parse(m_routeStopsCountRegex.Match(routeInfoLine).Value);
+            int routeStopsCount = int.Parse(routeStopsCountRegex.Match(routeInfoLine).Value);
 
-            string routeInfoLinePattern = $"{s_integerValuePattern}" +
-                                          $"(?<{s_routesOrderedSequenceGroupName}>{s_integerValuePattern}{{{routeStopsCount}}})" +
-                                          $"(?<{s_routesDurationGroupName}>{s_integerValuePattern}{{{routeStopsCount}}})";
+            string routeInfoLinePattern = $"{integerValuePattern}" +
+                                          $"(?<{routesOrderedSequenceGroupName}>{integerValuePattern}{{{routeStopsCount}}})" +
+                                          $"(?<{routesDurationGroupName}>{integerValuePattern}{{{routeStopsCount}}})";
 
             Regex routeInfoLineRegex = new Regex(routeInfoLinePattern);
 
-            var routeStopPointsOrderedSequence = routeInfoLineRegex.Match(routeInfoLine).Groups[s_routesOrderedSequenceGroupName].Value.
+            var routeStopPointsOrderedSequence = routeInfoLineRegex.Match(routeInfoLine).Groups[routesOrderedSequenceGroupName].Value.
                 TrimEnd().
                 Split();
 
-            var routePartsDuration = routeInfoLineRegex.Match(routeInfoLine).Groups[s_routesDurationGroupName].Value.
+            var routePartsDuration = routeInfoLineRegex.Match(routeInfoLine).Groups[routesDurationGroupName].Value.
                 TrimEnd().
                 Split();
 
-            int currentRouteIndex = i_routesCount - (m_infoLinesQueue.Count + 1);
+            int currentRouteIndex = i_routesCount - (infoLinesQueue.Count + 1);
 
             PutAsParsed(new List<Tuple<Func<int, string>, string[]>>()
             {
@@ -163,7 +163,7 @@ namespace PublicTransportInformationService.Tools.Parser
             {
                 infoKey = keyBuilder(keyIndex);
 
-                m_parsedRoutesInfo.Add(infoKey, parsedRoutesData[keyIndex]);
+                parsedRoutesInfo.Add(infoKey, parsedRoutesData[keyIndex]);
 
             }
         }

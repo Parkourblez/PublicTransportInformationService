@@ -65,7 +65,7 @@
 
 
         <Button Content="Compute" Grid.Row="3" Grid.Column="1" IsEnabled="{Binding ElementName=chkBox, Path=IsChecked}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0" Height="50" Click="Compute_Button_Click"/>
-        <Button Content="Cancel" Grid.Row="3" Grid.Column="2" IsEnabled="{Binding ElementName=chkBox, Path=IsChecked}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0" Height="50" Click="Cancel_Button_Click"/>
+        <Button Content="Cancel" Grid.Row="3" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0" Height="50" Click="Cancel_Button_Click"/>
         <Button Content="Load New Data" Grid.Row="3" Grid.Column="3" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0" Height="50" Click="Load_Data_Button_Click"/>
     </Grid>
 </Window>

@@ -4,19 +4,13 @@ using PublicTransportInformationService.Tools.Parser.BaseClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace PublicTransportInformationService.DataStructures.RouteInfoFactory
 {
     public class TextRouteInfoFactory : RouteInfoFactoryBase
     {
-        #region Private members
-
-        private Regex indexesRegex = new Regex(@"(\d+)/?(\d*)");
-
-        #endregion
-
         #region Constructors
+
         public TextRouteInfoFactory(RouteInfoParserBase parser) : base(parser) { }
 
         #endregion
@@ -25,9 +19,9 @@ namespace PublicTransportInformationService.DataStructures.RouteInfoFactory
         
         public override List<RouteInfo> GenerateRoutesInfoBasedOn(string stringData)
         {
-            m_parser.Parse(stringData);
+            parser.Parse(stringData);
 
-            if (!m_parser.IsParsedSuccessful)
+            if (!parser.IsParsedSuccessful)
             {
                 return null;
             }
@@ -46,21 +40,21 @@ namespace PublicTransportInformationService.DataStructures.RouteInfoFactory
             RouteInfo routeInfo;
 
             string key;
-            while (m_parser[key = TextRouteInfoParserKeysFactory.GetRoutesStartTimeKeyFor(routeIndex)] != null)
+            while (parser[key = TextRouteInfoParserKeysFactory.GetRoutesStartTimeKeyFor(routeIndex)] != null)
             {
-                hhmm = m_parser[key].Split(':').Select(val => int.Parse(val)).ToArray();
+                hhmm = parser[key].Split(':').Select(val => int.Parse(val)).ToArray();
                 routeStartTime = new TimeSpan(hhmm[0], hhmm[1], 0);
 
                 key = TextRouteInfoParserKeysFactory.GetRoutesCostKeyFor(routeIndex);
-                routeCost = int.Parse(m_parser[key]);
+                routeCost = int.Parse(parser[key]);
 
                 routePartsTripDuration = new Dictionary<int, TimeSpan>();
-                while (m_parser[key = TextRouteInfoParserKeysFactory.GetRoutesStopPointsKeyFor(routeIndex, routePartIndex)] != null)
+                while (parser[key = TextRouteInfoParserKeysFactory.GetRoutesStopPointsKeyFor(routeIndex, routePartIndex)] != null)
                 {
-                    routeStopPointNumber = int.Parse(m_parser[key]);
+                    routeStopPointNumber = int.Parse(parser[key]);
 
                     key = TextRouteInfoParserKeysFactory.GetRoutePartsTripDurationKeyFor(routeIndex, routePartIndex);
-                    routePartTripDuration = TimeSpan.FromMinutes(int.Parse(m_parser[key]));
+                    routePartTripDuration = TimeSpan.FromMinutes(int.Parse(parser[key]));
 
                     routePartsTripDuration.Add(routeStopPointNumber, routePartTripDuration);
 
