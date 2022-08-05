@@ -234,9 +234,10 @@ namespace PublicTransportInformationService
                 try
                 {
                     int currentAlgoStartPoint = algo.GetCurrentStartPoint();
+                    TimeSpan tripStartTime = algo.TripStartTime;
                     algo.Initialize(startPoint, finishPoint, startTime);
 
-                    if (currentAlgoStartPoint != startPoint)
+                    if (currentAlgoStartPoint != startPoint || startTime != tripStartTime)
                     {
                         algo.Compute(ts.Token);
                     }
@@ -255,6 +256,12 @@ namespace PublicTransportInformationService
 
             if (algo.TryGetPathToFinish(out List<Tuple<int, int>> path))
             {
+                if(path.Count == 1)
+                {
+                    outputContainer.Text = "Start point equals finish point.";
+                    return;
+                }
+
                 TimeSpan arrivalTimeToPoint = TimeSpan.MaxValue;
                 TimeSpan tripPartStartTime = TimeSpan.MaxValue;
                 TimeSpan waitingTime = TimeSpan.MaxValue;

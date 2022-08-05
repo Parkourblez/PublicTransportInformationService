@@ -25,7 +25,7 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
 
         #region Properties
 
-
+        public TimeSpan TripStartTime => tripStartTime;
 
         #endregion
 
@@ -47,10 +47,11 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
 
         public virtual void Initialize(int startPoint, int finishPoint, TimeSpan tripStartTime)
         {
+            TimeSpan prevStartTime = this.tripStartTime;
             this.tripStartTime = tripStartTime;
             this.finishPoint = finishPoint;
 
-            if (startPoint != GetCurrentStartPoint())
+            if (startPoint != GetCurrentStartPoint() || this.tripStartTime != prevStartTime)
             {
                 dijkstraShortestPathAlgorithm.SetRootVertex(startPoint);
 
