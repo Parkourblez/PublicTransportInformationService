@@ -68,7 +68,6 @@ namespace PublicTransportInformationService
             var dialog = sender as OpenFileDialog;
             if (dialog != null && dialog.CheckFileExists)
             {
-                chkBox.IsChecked = true;
                 infoOutput.Text = "Loading data...";
 
                 List<RouteInfo> routesInfoList = null;
@@ -102,6 +101,7 @@ namespace PublicTransportInformationService
                 {
                     this.routesInfoList = routesInfoList;
                     infoOutput.Text = "Data loaded.";
+                    chkBox.IsChecked = true;
                 }
             }
         }
