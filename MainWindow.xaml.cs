@@ -185,7 +185,7 @@ namespace PublicTransportInformationService
                     startTime = TimeSpan.Parse(dataString);
                     if (startTime > TimeSpan.FromDays(1))
                     {
-                        throw new Exception();
+                        throw new ArgumentException("Start time cant be more then 1 day.");
                     }
                 }, () => { startTime = TimeSpan.Zero; });
         }
@@ -198,8 +198,14 @@ namespace PublicTransportInformationService
                 defaultSetter?.Invoke();
                 return;
             }
+
             try
             {
+                if (textBox.Text.Contains("-"))
+                {
+                    throw new ArgumentException("Values can't be negative.");
+                }
+
                 initAction?.Invoke(textBox.Text);
                 
                 if (infoOutput.Text.Contains(errorMessageString))
