@@ -187,41 +187,38 @@ namespace PublicTransportInformationService
             int partStartRoute = 0;
 
             outputString.Append("Route path (stop_point[routeId]): \n");
-            for (int j = 0; j < 4; j++)
+            foreach (var pathPart in path)
             {
-                foreach (var pathPart in path)
+                outputString.Append(pathPart.Item1).Append("[").Append(pathPart.Item2 + 1).Append("]");
+
+
+                if (arrivalTimeToPoint == TimeSpan.MaxValue)
                 {
-                    outputString.Append(pathPart.Item1).Append("[").Append(pathPart.Item2 + 1).Append("]");
+                    arrivalTimeToPoint = startTime;
+                }
 
+                if (tripPartStartTime != TimeSpan.MaxValue)
+                {
+                    TimeSpan tripDuration = routesInfoList[partStartRoute].RoutePartsTripDuration[partStartPoint];
+                    TimeSpan tripFinishTime = tripPartStartTime + tripDuration;
+                    arrivalTimeToPoint = tripFinishTime;
 
-                    if (arrivalTimeToPoint == TimeSpan.MaxValue)
-                    {
-                        arrivalTimeToPoint = startTime;
-                    }
-
-                    if (tripPartStartTime != TimeSpan.MaxValue)
-                    {
-                        TimeSpan tripDuration = routesInfoList[partStartRoute].RoutePartsTripDuration[partStartPoint];
-                        TimeSpan tripFinishTime = tripPartStartTime + tripDuration;
-                        arrivalTimeToPoint = tripFinishTime;
-
-                        outputString.Append(" (").Append(tripPartStartTime).Append(" - ").Append(tripFinishTime).Append(") ");
-                        outputString.Append("Waiting time: ").Append(waitingTime).Append("\n");
-
-                        if (path.IndexOf(pathPart) != path.Count - 1)
-                        {
-                            outputString.Append(pathPart.Item1).Append("[").Append(pathPart.Item2 + 1).Append("]");
-                        }
-                    }
-                    partStartPoint = pathPart.Item1;
-                    partStartRoute = pathPart.Item2;
-
-                    tripPartStartTime = routesInfoList[partStartRoute].GetClosestArrivalTimeForStopPoint(arrivalTimeToPoint, partStartPoint, out waitingTime);
+                    outputString.Append(" (").Append(tripPartStartTime).Append(" - ").Append(tripFinishTime).Append(") ");
+                    outputString.Append("Waiting time: ").Append(waitingTime).Append("\n");
 
                     if (path.IndexOf(pathPart) != path.Count - 1)
                     {
-                        outputString.Append(" -> ");
+                        outputString.Append(pathPart.Item1).Append("[").Append(pathPart.Item2 + 1).Append("]");
                     }
+                }
+                partStartPoint = pathPart.Item1;
+                partStartRoute = pathPart.Item2;
+
+                tripPartStartTime = routesInfoList[partStartRoute].GetClosestArrivalTimeForStopPoint(arrivalTimeToPoint, partStartPoint, out waitingTime);
+
+                if (path.IndexOf(pathPart) != path.Count - 1)
+                {
+                    outputString.Append(" -> ");
                 }
             }
 
