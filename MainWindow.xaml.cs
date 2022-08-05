@@ -24,6 +24,8 @@ namespace PublicTransportInformationService
     /// </summary>
     public partial class MainWindow : Window
     {
+        #region Private members
+
         private List<RouteInfo> routesInfoList;
         private int startPoint;
         private int finishPoint;
@@ -34,6 +36,9 @@ namespace PublicTransportInformationService
 
         private object loadFileLockObject = new object();
 
+        #endregion
+
+        #region Constructors
         public MainWindow()
         {
             Dispatcher.UnhandledException += OnUnhandledException;
@@ -41,6 +46,10 @@ namespace PublicTransportInformationService
 
             InitializeComponent();
         }
+
+        #endregion
+
+        #region Event handlers
 
         private void OnApplicationExit(object sender, ExitEventArgs args)
         {
@@ -51,7 +60,7 @@ namespace PublicTransportInformationService
         private void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
             string firstStackCall = e.Exception.StackTrace.Split("   at ").Skip(1).FirstOrDefault();
-            MessageBox.Show("An unhandled exception was thrown.\n\n" + e.Exception.Message + "\n\n"+ firstStackCall, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show("An unhandled exception was thrown.\n\n" + e.Exception.Message + "\n\n" + firstStackCall, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true;
         }
 
@@ -95,12 +104,12 @@ namespace PublicTransportInformationService
 
                 if (routesInfoList == null || !routesInfoList.Any())
                 {
-                    infoOutput.Text = "No data loaded. Old data will be used if loaded before.";
+                    infoOutput.Text = "No data loaded. Old data will be used if loaded before. ";
                 }
                 else
                 {
                     this.routesInfoList = routesInfoList;
-                    infoOutput.Text = "Data loaded.";
+                    infoOutput.Text = "Data loaded. ";
                     chkBox.IsChecked = true;
                 }
             }
@@ -122,28 +131,10 @@ namespace PublicTransportInformationService
 
             CancellationTokenSource ts = new CancellationTokenSource();
 
-            bool isCanceled = false;
             chkBox.IsChecked = false;
 
-            var fastestRouteAlgoTask = Task.Run(() =>
-            {
-                try
-                {
-                    fastestRouteAlgo.Initialize(startPoint, finishPoint, startTime);
-                    fastestRouteAlgo.Compute(ts.Token);
-                }
-                catch(OperationCanceledException e) { isCanceled = true; }
-            });
-
-            var cheapestRouteAlgoTask = Task.Run(() =>
-            {
-                try
-                {
-                    cheapestRouteAlgo.Initialize(startPoint, finishPoint, startTime);
-                    cheapestRouteAlgo.Compute(ts.Token);
-                }
-                catch (OperationCanceledException e) { isCanceled = true; }
-            });
+            var fastestRouteAlgoTask = RunCouputationTask(fastestRouteAlgo, ts);
+            var cheapestRouteAlgoTask = RunCouputationTask(cheapestRouteAlgo, ts);
 
             cancellationTokenSource = ts;
 
@@ -151,13 +142,11 @@ namespace PublicTransportInformationService
 
             await Task.Run(() => { Task.WaitAll(tasks); });
 
-            ts.Dispose();
-            cancellationTokenSource = null;
-
             string completionText = "Calculation finished.";
-            if (!isCanceled)
+
+            if (!ts.IsCancellationRequested)
             {
-                GenerateRouteAlgoOutput(fastestRouteAlgo, "Fastest route takes: ", "minutes",fastestPathOutput);
+                GenerateRouteAlgoOutput(fastestRouteAlgo, "Fastest route takes: ", "minutes", fastestPathOutput);
                 GenerateRouteAlgoOutput(cheapestRouteAlgo, "Cheapest route costs: ", "rubles", cheapestPathOutput);
             }
             else
@@ -165,69 +154,11 @@ namespace PublicTransportInformationService
                 completionText = "Canceled.";
             }
 
+            ts.Dispose();
+            cancellationTokenSource = null;
+
             infoOutput.Text = completionText;
             chkBox.IsChecked = true;
-        }
-
-        private void GenerateRouteAlgoOutput(RoutePathAlgorithmBase algo, string description, string mesureName, TextBlock outputContainer)
-        {
-            double distance = 0;
-            algo?.TryGetDistanceToFinish(out distance);
-
-            StringBuilder outputString = new StringBuilder();
-            outputString.Append(description).Append(distance).Append($" {mesureName}.\n");
-
-            List<Tuple<int, int>> path = new List<Tuple<int, int>>();
-            algo.TryGetPathToFinish(out path);
-
-            TimeSpan arrivalTimeToPoint = TimeSpan.MaxValue;
-            TimeSpan tripPartStartTime = TimeSpan.MaxValue;
-            TimeSpan waitingTime = TimeSpan.MaxValue;
-            int partStartPoint = 0;
-            int partStartRoute = 0;
-
-            outputString.Append("Route path (stop_point[routeId]): \n");
-            foreach (var pathPart in path)
-            {
-                outputString.Append(pathPart.Item1).Append("[").Append(pathPart.Item2 + 1).Append("]");
-
-
-                if (arrivalTimeToPoint == TimeSpan.MaxValue)
-                {
-                    arrivalTimeToPoint = startTime;
-                }
-
-                if (tripPartStartTime != TimeSpan.MaxValue)
-                {
-                    TimeSpan tripDuration = routesInfoList[partStartRoute].RoutePartsTripDuration[partStartPoint];
-                    TimeSpan tripFinishTime = tripPartStartTime + tripDuration;
-                    arrivalTimeToPoint = tripFinishTime;
-
-                    outputString.Append(" (").Append(tripPartStartTime).Append(" - ").Append(tripFinishTime).Append(") ");
-                    outputString.Append("Waiting time: ").Append(waitingTime).Append("\n");
-
-                    if (path.IndexOf(pathPart) != path.Count - 1)
-                    {
-                        outputString.Append(pathPart.Item1).Append("[").Append(pathPart.Item2 + 1).Append("]");
-                    }
-                }
-                partStartPoint = pathPart.Item1;
-                partStartRoute = pathPart.Item2;
-
-                tripPartStartTime = routesInfoList[partStartRoute].GetClosestArrivalTimeForStopPoint(arrivalTimeToPoint, partStartPoint, out waitingTime);
-
-                if (path.IndexOf(pathPart) != path.Count - 1)
-                {
-                    outputString.Append(" -> ");
-                }
-            }
-
-            outputContainer.Text = outputString.ToString();
-        }
-
-        private void ClearOutput()
-        {
-            fastestPathOutput.Text = string.Empty;
         }
 
         private void tripStartPoint_TextChanged(object sender, TextChangedEventArgs e)
@@ -291,5 +222,95 @@ namespace PublicTransportInformationService
         {
             tripStartTime.Text = startTime.ToString();
         }
+
+        #endregion
+
+        #region Private methods
+
+        private Task RunCouputationTask(RoutePathAlgorithmBase algo, CancellationTokenSource ts)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    int currentAlgoStartPoint = algo.GetCurrentStartPoint();
+                    algo.Initialize(startPoint, finishPoint, startTime);
+
+                    if (currentAlgoStartPoint != startPoint)
+                    {
+                        algo.Compute(ts.Token);
+                    }
+                }
+                catch (OperationCanceledException e) { }
+            });
+        }
+
+        private void GenerateRouteAlgoOutput(RoutePathAlgorithmBase algo, string description, string mesureName, TextBlock outputContainer)
+        {
+            double distance = 0;
+            algo?.TryGetDistanceToFinish(out distance);
+
+            StringBuilder outputString = new StringBuilder();
+            outputString.Append(description).Append(distance).Append($" {mesureName}.\n");
+
+            if (algo.TryGetPathToFinish(out List<Tuple<int, int>> path))
+            {
+                TimeSpan arrivalTimeToPoint = TimeSpan.MaxValue;
+                TimeSpan tripPartStartTime = TimeSpan.MaxValue;
+                TimeSpan waitingTime = TimeSpan.MaxValue;
+                int partStartPoint = 0;
+                int partStartRoute = 0;
+
+                outputString.Append("Route path (stop_point[routeId]): \n");
+                foreach (var pathPart in path)
+                {
+                    outputString.Append(pathPart.Item1).Append("[").Append(pathPart.Item2 + 1).Append("]");
+
+
+                    if (arrivalTimeToPoint == TimeSpan.MaxValue)
+                    {
+                        arrivalTimeToPoint = startTime;
+                    }
+
+                    if (tripPartStartTime != TimeSpan.MaxValue)
+                    {
+                        TimeSpan tripDuration = routesInfoList[partStartRoute].RoutePartsTripDuration[partStartPoint];
+                        TimeSpan tripFinishTime = tripPartStartTime + tripDuration;
+                        arrivalTimeToPoint = tripFinishTime;
+
+                        outputString.Append(" (").Append(tripPartStartTime).Append(" - ").Append(tripFinishTime).Append(") ");
+                        outputString.Append("Waiting time: ").Append(waitingTime).Append("\n");
+
+                        if (path.IndexOf(pathPart) != path.Count - 1)
+                        {
+                            outputString.Append(pathPart.Item1).Append("[").Append(pathPart.Item2 + 1).Append("]");
+                        }
+                    }
+                    partStartPoint = pathPart.Item1;
+                    partStartRoute = pathPart.Item2;
+
+                    tripPartStartTime = routesInfoList[partStartRoute].GetClosestArrivalTimeForStopPoint(arrivalTimeToPoint, partStartPoint, out waitingTime);
+
+                    if (path.IndexOf(pathPart) != path.Count - 1)
+                    {
+                        outputString.Append(" -> ");
+                    }
+                }
+            }
+            else
+            {
+                outputString.Append("No path between current stop points or algorithm isn't finished.");
+            }
+
+            outputContainer.Text = outputString.ToString();
+        }
+
+        private void ClearOutput()
+        {
+            fastestPathOutput.Text = string.Empty;
+        }
+
+        #endregion
+
     }
 }

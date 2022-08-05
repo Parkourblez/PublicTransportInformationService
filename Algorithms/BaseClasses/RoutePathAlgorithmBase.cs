@@ -23,6 +23,12 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
 
         #endregion
 
+        #region Properties
+
+
+
+        #endregion
+
         #region Constructors
 
         public RoutePathAlgorithmBase(List<RouteInfo> routesInfoList, int startPoint, int finishPoint, TimeSpan startTime)
@@ -44,11 +50,14 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
             this.tripStartTime = tripStartTime;
             this.finishPoint = finishPoint;
 
-            dijkstraShortestPathAlgorithm.SetRootVertex(startPoint);
+            if (startPoint != GetCurrentStartPoint())
+            {
+                dijkstraShortestPathAlgorithm.SetRootVertex(startPoint);
 
-            Resubscribe(OnTreeEdge);
+                Resubscribe(OnTreeEdge);
 
-            pathByStopNumber.Clear();
+                pathByStopNumber.Clear();
+            }
         }
 
         public virtual void Compute(CancellationToken token)
@@ -59,7 +68,9 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
 
         public virtual bool TryGetDistanceToFinish(out double distance)
         {
-            return dijkstraShortestPathAlgorithm.TryGetDistance(finishPoint, out distance);
+            distance = int.MaxValue;
+            return dijkstraShortestPathAlgorithm.State == QuickGraph.Algorithms.ComputationState.Finished &&
+                dijkstraShortestPathAlgorithm.TryGetDistance(finishPoint, out distance);
         }
 
         public virtual bool TryGetPathToFinish(out List<Tuple<int, int>> path)
@@ -92,6 +103,13 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
             }
 
             return result;
+        }
+
+        public int GetCurrentStartPoint()
+        {
+            dijkstraShortestPathAlgorithm.TryGetRootVertex(out int rootVertex);
+
+            return rootVertex;
         }
 
         #endregion
