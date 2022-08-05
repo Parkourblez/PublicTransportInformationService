@@ -55,7 +55,7 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
 
                 dijkstraShortestPathAlgorithm.SetRootVertex(startPoint);
 
-                Resubscribe(OnTreeEdge);
+                Resubscribe();
 
                 pathByStopNumber.Clear();
             }
@@ -132,19 +132,19 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
 
         protected void OnFinished(object sender, EventArgs args)
         {
-            Unsubscribe(OnTreeEdge);
+            Unsubscribe();
         }
 
-        protected void Resubscribe(EdgeAction<int, TaggedEdge<int, int>> action)
+        protected void Resubscribe()
         {
-            Unsubscribe(action);
-            Subscribe(action);
+            Unsubscribe();
+            Subscribe();
         }
 
-        protected void Subscribe(EdgeAction<int, TaggedEdge<int, int>> action)
+        protected void Subscribe()
         {
+            dijkstraShortestPathAlgorithm.TreeEdge += OnTreeEdge;
             dijkstraShortestPathAlgorithm.ExamineEdge += CheckCancel;
-            dijkstraShortestPathAlgorithm.TreeEdge += action;
             dijkstraShortestPathAlgorithm.Finished += OnFinished;
         }
 
@@ -153,11 +153,11 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
             ct.ThrowIfCancellationRequested();
         }
 
-        protected void Unsubscribe(EdgeAction<int, TaggedEdge<int, int>> action)
+        protected void Unsubscribe()
         {
-            dijkstraShortestPathAlgorithm.TreeEdge -= action;
-            dijkstraShortestPathAlgorithm.Finished -= OnFinished;
+            dijkstraShortestPathAlgorithm.TreeEdge -= OnTreeEdge;
             dijkstraShortestPathAlgorithm.ExamineEdge -= CheckCancel;
+            dijkstraShortestPathAlgorithm.Finished -= OnFinished;
         }
 
         #endregion
