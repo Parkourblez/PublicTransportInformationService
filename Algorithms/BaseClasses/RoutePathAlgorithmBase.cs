@@ -1,6 +1,7 @@
 ﻿using PublicTransportInformationService.DataStructures;
 using PublicTransportInformationService.DataStructures.GraphBuilder;
 using QuickGraph;
+using QuickGraph.Algorithms;
 using QuickGraph.Algorithms.ShortestPath;
 using System;
 using System.Collections.Generic;
@@ -70,7 +71,7 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
         public virtual bool TryGetDistanceToFinish(out double distance)
         {
             distance = int.MaxValue;
-            return dijkstraShortestPathAlgorithm.State == QuickGraph.Algorithms.ComputationState.Finished &&
+            return dijkstraShortestPathAlgorithm.State == ComputationState.Finished &&
                 dijkstraShortestPathAlgorithm.TryGetDistance(finishPoint, out distance) && distance != int.MaxValue;
         }
 
@@ -115,7 +116,8 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
 
         public bool CheckIfRecalculationIsNeeded(int newStartPoint, TimeSpan newStartTime)
         {
-            return dijkstraShortestPathAlgorithm.TryGetRootVertex(out int rootVertex) ||
+            return dijkstraShortestPathAlgorithm.State != ComputationState.Finished ||
+                !dijkstraShortestPathAlgorithm.TryGetRootVertex(out int rootVertex) ||
                 rootVertex != newStartPoint || tripStartTime != newStartTime;
         }
 
