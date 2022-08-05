@@ -80,17 +80,18 @@ namespace PublicTransportInformationService
                         using FileStream stream = File.OpenRead(dialog.FileName);
                         using StreamReader reader = new StreamReader(stream);
                         sourceDataString = reader.ReadToEnd();
-                    }
-                    if (string.IsNullOrEmpty(sourceDataString) || string.IsNullOrWhiteSpace(sourceDataString))
-                    {
-                        return;
-                    }
 
-                    RouteInfoParserBase parser = new TextRouteInfoParser();
-                    RouteInfoFactoryBase routeInfoFactory = new TextRouteInfoFactory(parser);
-                    routesInfoList = routeInfoFactory.GenerateRoutesInfoBasedOn(sourceDataString);
-                    fastestRouteAlgo = new ShortestRoutePathAlgorithm(routesInfoList);
-                    cheapestRouteAlgo = new CheapestRoutePathAlgorithm(routesInfoList);
+                        if (string.IsNullOrEmpty(sourceDataString) || string.IsNullOrWhiteSpace(sourceDataString))
+                        {
+                            return;
+                        }
+
+                        RouteInfoParserBase parser = new TextRouteInfoParser();
+                        RouteInfoFactoryBase routeInfoFactory = new TextRouteInfoFactory(parser);
+                        routesInfoList = routeInfoFactory.GenerateRoutesInfoBasedOn(sourceDataString);
+                        fastestRouteAlgo = new ShortestRoutePathAlgorithm(routesInfoList);
+                        cheapestRouteAlgo = new CheapestRoutePathAlgorithm(routesInfoList);
+                    }
                 });
 
                 if (routesInfoList == null || !routesInfoList.Any())
