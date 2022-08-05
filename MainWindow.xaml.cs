@@ -28,9 +28,11 @@ namespace PublicTransportInformationService
         private int startPoint;
         private int finishPoint;
         private TimeSpan startTime;
-        private ShortestRoutePathAlgorithm fastestRouteAlgo = null;
-        private CheapestRoutePathAlgorithm cheapestRouteAlgo = null;
+        private RoutePathAlgorithmBase fastestRouteAlgo;
+        private RoutePathAlgorithmBase cheapestRouteAlgo;
         private CancellationTokenSource cancellationTokenSource;
+
+        private object loadFileLockObject = new object();
 
         public MainWindow()
         {
@@ -67,22 +69,39 @@ namespace PublicTransportInformationService
             if (dialog != null && dialog.CheckFileExists)
             {
                 chkBox.IsChecked = true;
+                infoOutput.Text = "Loading data...";
 
                 List<RouteInfo> routesInfoList = null;
                 await Task.Run(() =>
                 {
-                    using FileStream stream = File.OpenRead(dialog.FileName);
-                    using StreamReader reader = new StreamReader(stream);
-                    string sourceDataString = reader.ReadToEnd();
+                    string sourceDataString = string.Empty;
+                    lock (loadFileLockObject)
+                    {
+                        using FileStream stream = File.OpenRead(dialog.FileName);
+                        using StreamReader reader = new StreamReader(stream);
+                        sourceDataString = reader.ReadToEnd();
+                    }
+                    if (string.IsNullOrEmpty(sourceDataString) || string.IsNullOrWhiteSpace(sourceDataString))
+                    {
+                        return;
+                    }
 
-                    RouteInfoParserBase p = new TextRouteInfoParser();
-                    RouteInfoFactoryBase routeInfoFactory = new TextRouteInfoFactory(p);
+                    RouteInfoParserBase parser = new TextRouteInfoParser();
+                    RouteInfoFactoryBase routeInfoFactory = new TextRouteInfoFactory(parser);
                     routesInfoList = routeInfoFactory.GenerateRoutesInfoBasedOn(sourceDataString);
                     fastestRouteAlgo = new ShortestRoutePathAlgorithm(routesInfoList);
                     cheapestRouteAlgo = new CheapestRoutePathAlgorithm(routesInfoList);
                 });
 
-                this.routesInfoList = routesInfoList;
+                if (routesInfoList == null || !routesInfoList.Any())
+                {
+                    infoOutput.Text = "No data loaded. Old data will be used if loaded before.";
+                }
+                else
+                {
+                    this.routesInfoList = routesInfoList;
+                    infoOutput.Text = "Data loaded.";
+                }
             }
         }
 
@@ -197,6 +216,10 @@ namespace PublicTransportInformationService
                 (dataString) =>
                 {
                     startTime = TimeSpan.Parse(dataString);
+                    if (startTime > TimeSpan.FromDays(1))
+                    {
+                        throw new Exception();
+                    }
                 }, () => { startTime = TimeSpan.Zero; });
         }
 
@@ -229,6 +252,11 @@ namespace PublicTransportInformationService
         {
             cancellationTokenSource?.Cancel();
             cancellationTokenSource = null;
+        }
+
+        private void tripStartTime_LostFocus(object sender, RoutedEventArgs e)
+        {
+            tripStartTime.Text = startTime.ToString();
         }
     }
 }

@@ -22,7 +22,6 @@
         </Grid.RowDefinitions>
         <CheckBox x:Name="chkBox" Visibility="Hidden" IsChecked="False"/>
 
-
         <Grid Grid.Row="0" Grid.ColumnSpan="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -47,7 +46,7 @@
             <StackPanel Grid.Column="2">
                 <Label Content="Start time" HorizontalAlignment="Center"/>
                 <Border  Margin="20 20" BorderThickness="0.2" BorderBrush ="Black">
-                    <TextBox x:Name="tripStartTime" HorizontalAlignment="Stretch" TextChanged="tripStartTime_TextChanged"/>
+                    <TextBox x:Name="tripStartTime" HorizontalAlignment="Stretch" TextChanged="tripStartTime_TextChanged" LostFocus="tripStartTime_LostFocus"/>
                 </Border>
             </StackPanel>
 

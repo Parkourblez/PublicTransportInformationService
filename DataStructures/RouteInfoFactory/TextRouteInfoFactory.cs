@@ -42,8 +42,7 @@ namespace PublicTransportInformationService.DataStructures.RouteInfoFactory
             string key;
             while (parser[key = TextRouteInfoParserKeysFactory.GetRoutesStartTimeKeyFor(routeIndex)] != null)
             {
-                hhmm = parser[key].Split(':').Select(val => int.Parse(val)).ToArray();
-                routeStartTime = new TimeSpan(hhmm[0], hhmm[1], 0);
+                routeStartTime = TimeSpan.Parse(parser[key]);
 
                 key = TextRouteInfoParserKeysFactory.GetRoutesCostKeyFor(routeIndex);
                 routeCost = int.Parse(parser[key]);
