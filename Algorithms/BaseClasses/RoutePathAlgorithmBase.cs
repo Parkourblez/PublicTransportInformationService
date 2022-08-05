@@ -47,12 +47,12 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
 
         public virtual void Initialize(int startPoint, int finishPoint, TimeSpan tripStartTime)
         {
-            TimeSpan prevStartTime = this.tripStartTime;
-            this.tripStartTime = tripStartTime;
             this.finishPoint = finishPoint;
 
-            if (startPoint != GetCurrentStartPoint() || this.tripStartTime != prevStartTime)
+            if (CheckIfRecalculationIsNeeded(startPoint, tripStartTime))
             {
+                this.tripStartTime = tripStartTime;
+
                 dijkstraShortestPathAlgorithm.SetRootVertex(startPoint);
 
                 Resubscribe(OnTreeEdge);
@@ -111,6 +111,12 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
             dijkstraShortestPathAlgorithm.TryGetRootVertex(out int rootVertex);
 
             return rootVertex;
+        }
+
+        public bool CheckIfRecalculationIsNeeded(int newStartPoint, TimeSpan newStartTime)
+        {
+            return dijkstraShortestPathAlgorithm.TryGetRootVertex(out int rootVertex) ||
+                rootVertex != newStartPoint || tripStartTime != newStartTime;
         }
 
         #endregion

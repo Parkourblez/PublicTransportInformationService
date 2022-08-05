@@ -118,6 +118,9 @@ namespace PublicTransportInformationService
         private async void Compute_Button_Click(object sender, RoutedEventArgs e)
         {
             infoOutput.Text = "Calculating...";
+            cheapestPathOutput.Text = string.Empty;
+            fastestPathOutput.Text = string.Empty;
+
             if (fastestRouteAlgo == null ||
                 !routesInfoList.Any(routeInfo => routeInfo.RoutePartsTripDuration.Keys.Contains(startPoint)) ||
                 !routesInfoList.Any(routeInfo => routeInfo.RoutePartsTripDuration.Keys.Contains(finishPoint)) ||
@@ -233,11 +236,9 @@ namespace PublicTransportInformationService
             {
                 try
                 {
-                    int currentAlgoStartPoint = algo.GetCurrentStartPoint();
-                    TimeSpan tripStartTime = algo.TripStartTime;
                     algo.Initialize(startPoint, finishPoint, startTime);
 
-                    if (currentAlgoStartPoint != startPoint || startTime != tripStartTime)
+                    if (algo.CheckIfRecalculationIsNeeded(startPoint, startTime))
                     {
                         algo.Compute(ts.Token);
                     }
