@@ -55,15 +55,14 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
                 this.tripStartTime = tripStartTime;
 
                 dijkstraShortestPathAlgorithm.SetRootVertex(startPoint);
-
-                Resubscribe();
-
-                pathByStopNumber.Clear();
             }
         }
 
         public virtual void Compute(CancellationToken token)
         {
+            Resubscribe();
+            pathByStopNumber.Clear();
+
             ct = token;
             dijkstraShortestPathAlgorithm.Compute();
         }
