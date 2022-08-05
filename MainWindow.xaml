@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PublicTransportInformationService"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" MinHeight="300" MinWidth="500">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
@@ -15,10 +15,10 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="1*" MaxHeight="100"/>
             <RowDefinition Height="1*"/>
-            <RowDefinition Height="1*"/>
-            <RowDefinition Height="0.5*"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="0.5*" MaxHeight="50"/>
+            <RowDefinition Height="1*" MaxHeight="100"/>
         </Grid.RowDefinitions>
         <CheckBox x:Name="chkBox" Visibility="Hidden" IsChecked="False"/>
 
@@ -53,18 +53,21 @@
         </Grid>
 
         <Border Grid.Row="1" Grid.ColumnSpan="2" Margin="10 10" BorderThickness="0.2" BorderBrush="Black">
-            <TextBlock x:Name="fastestPathOutput"/>
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden">
+                <TextBlock x:Name="fastestPathOutput"/>
+            </ScrollViewer>
         </Border>
         <Border Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Margin="10 10" BorderThickness="0.2" BorderBrush="Black">
-            <TextBlock x:Name="cheapestPathOutput"/>
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden">
+                <TextBlock x:Name="cheapestPathOutput"/>
+            </ScrollViewer>
         </Border>
         <Border Grid.Row="2" Grid.ColumnSpan="4" Margin="10 10" BorderThickness="0.2" BorderBrush="Black">
             <TextBlock x:Name="infoOutput"/>
         </Border>
-
-
-        <Button Content="Compute" Grid.Row="3" Grid.Column="1" IsEnabled="{Binding ElementName=chkBox, Path=IsChecked}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0" Height="50" Click="Compute_Button_Click"/>
-        <Button Content="Cancel" Grid.Row="3" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0" Height="50" Click="Cancel_Button_Click"/>
-        <Button Content="Load New Data" Grid.Row="3" Grid.Column="3" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10 0" Height="50" Click="Load_Data_Button_Click"/>
+        
+        <Button Content="Compute" Grid.Row="3" Grid.Column="1" IsEnabled="{Binding ElementName=chkBox, Path=IsChecked}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10 0" Height="50" Click="Compute_Button_Click"/>
+        <Button Content="Cancel" Grid.Row="3" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10 0" Height="50" Click="Cancel_Button_Click"/>
+        <Button Content="Load New Data" Grid.Row="3" Grid.Column="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10 0" Height="50" Click="Load_Data_Button_Click"/>
     </Grid>
 </Window>
