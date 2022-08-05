@@ -118,8 +118,7 @@ namespace PublicTransportInformationService
         private async void Compute_Button_Click(object sender, RoutedEventArgs e)
         {
             infoOutput.Text = "Calculating...";
-            cheapestPathOutput.Text = string.Empty;
-            fastestPathOutput.Text = string.Empty;
+            ClearOutput();
 
             if (fastestRouteAlgo == null ||
                 !routesInfoList.Any(routeInfo => routeInfo.RoutePartsTripDuration.Keys.Contains(startPoint)) ||
@@ -129,8 +128,6 @@ namespace PublicTransportInformationService
                 infoOutput.Text = "No input provided or values are incorrect. ";
                 return;
             }
-
-            ClearOutput();
 
             CancellationTokenSource ts = new CancellationTokenSource();
 
@@ -185,7 +182,7 @@ namespace PublicTransportInformationService
                     startTime = TimeSpan.Parse(dataString);
                     if (startTime > TimeSpan.FromDays(1))
                     {
-                        throw new ArgumentException("Start time cant be more then 1 day.");
+                        throw new ArgumentException("Start time can't be more then 1 day.");
                     }
                 }, () => { startTime = TimeSpan.Zero; });
         }
@@ -255,8 +252,11 @@ namespace PublicTransportInformationService
 
         private void GenerateRouteAlgoOutput(RoutePathAlgorithmBase algo, string description, string mesureName, TextBlock outputContainer)
         {
-            double distance = 0;
-            algo?.TryGetDistanceToFinish(out distance);
+            if (!algo.TryGetDistanceToFinish(out double distance))
+            {
+                outputContainer.Text = "Can't reach finish point from start point.";
+                return;
+            }
 
             StringBuilder outputString = new StringBuilder();
             outputString.Append(description).Append(distance).Append($" {mesureName}.\n");
@@ -322,9 +322,9 @@ namespace PublicTransportInformationService
         private void ClearOutput()
         {
             fastestPathOutput.Text = string.Empty;
+            cheapestPathOutput.Text = string.Empty;
         }
 
         #endregion
-
     }
 }

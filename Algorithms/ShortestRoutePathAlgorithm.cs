@@ -1,6 +1,5 @@
 ﻿using PublicTransportInformationService.Algorithms.BaseClasses;
 using PublicTransportInformationService.DataStructures;
-using PublicTransportInformationService.DataStructures.GraphBuilder;
 using QuickGraph;
 using System;
 using System.Collections.Generic;

@@ -71,7 +71,7 @@ namespace PublicTransportInformationService.Algorithms.BaseClasses
         {
             distance = int.MaxValue;
             return dijkstraShortestPathAlgorithm.State == QuickGraph.Algorithms.ComputationState.Finished &&
-                dijkstraShortestPathAlgorithm.TryGetDistance(finishPoint, out distance);
+                dijkstraShortestPathAlgorithm.TryGetDistance(finishPoint, out distance) && distance != int.MaxValue;
         }
 
         public virtual bool TryGetPathToFinish(out List<Tuple<int, int>> path)

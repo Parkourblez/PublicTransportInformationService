@@ -3,7 +3,6 @@ using PublicTransportInformationService.Tools.Parser;
 using PublicTransportInformationService.Tools.Parser.BaseClasses;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace PublicTransportInformationService.DataStructures.RouteInfoFactory
 {
