@@ -30,8 +30,13 @@ namespace PublicTransportInformationService.DataStructures
         #endregion
 
         #region Public methods
-        public TimeSpan GetClosestArrivalTimeForStopPoint(TimeSpan fromTime, int stopPoint)
+        public TimeSpan GetClosestArrivalTimeForStopPoint(TimeSpan fromTime, int stopPoint, out TimeSpan waitingime)
         {
+            if (!RoutePartsTripDuration.ContainsKey(stopPoint))
+            {
+                throw new ArgumentException($"Route {RouteId + 1} can't reach stop point {stopPoint}.");
+            }
+
             TimeSpan arrivalTime = RouteStartTime;
             var routeStopPointsKeyList = RoutePartsTripDuration.Keys.ToList();
 
@@ -46,6 +51,8 @@ namespace PublicTransportInformationService.DataStructures
                     arrivalTime = RouteStartTime;
                 }
             }
+
+            waitingime = arrivalTime - fromTime;
 
             return arrivalTime;
         }

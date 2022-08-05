@@ -45,14 +45,13 @@ namespace PublicTransportInformationService.Algorithms
         protected override double WeightForEdge(TaggedEdge<int, int> edge)
         {
             var sourceVertex = verticesTimeInfoList.FirstOrDefault(vertexInfo => vertexInfo.VertexId == edge.Source);
-            TimeSpan waitTime = TimeSpan.Zero;
+            TimeSpan waitingTime = TimeSpan.Zero;
             if (sourceVertex != null)
             {
-                var busArrivalTime = routesInfoList[edge.Tag].GetClosestArrivalTimeForStopPoint(sourceVertex.ArrivalTime, sourceVertex.VertexId);
-                waitTime = busArrivalTime - sourceVertex.ArrivalTime;
+                var busArrivalTime = routesInfoList[edge.Tag].GetClosestArrivalTimeForStopPoint(sourceVertex.ArrivalTime, sourceVertex.VertexId, out waitingTime);
             }
 
-            var tripTime = (waitTime + routesInfoList[edge.Tag].RoutePartsTripDuration[edge.Source]).TotalMinutes;
+            var tripTime = (waitingTime + routesInfoList[edge.Tag].RoutePartsTripDuration[edge.Source]).TotalMinutes;
 
             return tripTime;
         }
